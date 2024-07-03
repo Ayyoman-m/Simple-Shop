@@ -31,19 +31,18 @@
 
         .content {
             padding-top: 80px;
-            overflow-y: auto;
-            height: calc(100vh - 80px);
         }
 
         table {
             width: 100%;
-            max-width: 100%;
+            max-width: 80%;
             margin: 20px auto;
             border-collapse: collapse;
             background-color: rgba(255, 255, 255, 0.9);
             position: relative;
-            display: block;
             overflow-x: auto;
+            display: block;
+            height: 80vh;
         }
 
         th,
@@ -72,9 +71,15 @@
         }
 
         th:nth-child(3),
-        td:nth-child(3),
+        td:nth-child(3) {
+            width: 100px;
+        }
+
         th:nth-child(4),
-        td:nth-child(4),
+        td:nth-child(4) {
+            width: 120px;
+        }
+
         th:nth-child(5),
         td:nth-child(5) {
             width: 100px;
@@ -171,84 +176,49 @@
             { id: 14, name: 'Frozen Pizza', price: 5.00, img: 'https://voila.ca/images-v3/2d92d19c-0354-49c0-8a91-5260ed0bf531/9b7061e8-6f1a-4333-8324-5ca8e9aaa697/500x500.jpg' },
             { id: 15, name: 'Frozen Burgers', price: 4.50, img: 'https://zabihahalal.com/wp-content/uploads/2020/12/MicrosoftTeams-image.png' },
             { id: 16, name: 'Bread', price: 1.50, img: 'https://assets.shop.loblaws.ca/products/20305674/b1/en/side/20305674_side_a01_@2.png' },
-            { id: 17, name: 'Buns', price: 1.75, img: 'https://assets.shop.loblaws.ca/products/20792641/b1/en/side/20792641_side_a01_@2.png' },
-            { id: 18, name: 'Cookies', price: 2.50, img: 'https://assets.shop.loblaws.ca/products/21520771/b1/en/beauty/21520771_beauty_a01_@2.png' },
-            { id: 19, name: 'Chips', price: 2.00, img: 'https://assets.shop.loblaws.ca/products/20808648/b1/en/front/20808648_front_a01_@2.png' },
-            { id: 20, name: 'Pepsi', price: 1.25, img: 'https://images.heb.com/is/image/HEBGrocery/000121329' }
+            { id: 17, name: 'Buns', price: 1.00, img: 'https://assets.bonappetit.com/photos/5f8877e9ba63e7584fca07db/1:1/w_2560%2Cc_limit/Homemade-Hamburger-Buns.jpg' },
+            { id: 18, name: 'Cake', price: 10.00, img: 'https://assets.shop.loblaws.ca/products/20305759/b1/en/front/20305759_front_a06_@2.png' },
+            { id: 19, name: 'Peanut Butter', price: 3.00, img: 'https://assets.shop.loblaws.ca/products/20310184/b1/en/front/20310184_front_a06_@2.png' },
+            { id: 20, name: 'Jelly', price: 2.50, img: 'https://assets.shop.loblaws.ca/products/20310166/b1/en/front/20310166_front_a06_@2.png' }
         ];
 
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', () => {
             const tableBody = document.querySelector('#product-table tbody');
 
             products.forEach((product, index) => {
                 const row = document.createElement('tr');
 
-                const slNoCell = document.createElement('td');
-                slNoCell.textContent = index + 1;
-                row.appendChild(slNoCell);
-
-                const productCell = document.createElement('td');
-                const productInfo = document.createElement('div');
-                productInfo.className = 'product-info';
-                const productImg = document.createElement('img');
-                productImg.src = product.img;
-                const productName = document.createElement('span');
-                productName.textContent = product.name;
-                productInfo.appendChild(productImg);
-                productInfo.appendChild(productName);
-                productCell.appendChild(productInfo);
-                row.appendChild(productCell);
-
-                const priceCell = document.createElement('td');
-                priceCell.textContent = `$${product.price.toFixed(2)}`;
-                row.appendChild(priceCell);
-
-                const quantityCell = document.createElement('td');
-                const quantityInput = document.createElement('input');
-                quantityInput.type = 'number';
-                quantityInput.min = '0';
-                quantityInput.value = '0';
-                quantityInput.dataset.productId = product.id;
-                quantityInput.addEventListener('input', updateTotalPrice);
-                quantityCell.appendChild(quantityInput);
-                row.appendChild(quantityCell);
-
-                const totalPriceCell = document.createElement('td');
-                totalPriceCell.textContent = '$0.00';
-                row.appendChild(totalPriceCell);
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td class="product-info">
+                        <img src="${product.img}" alt="${product.name}">
+                        <span>${product.name}</span>
+                    </td>
+                    <td>$${product.price.toFixed(2)}</td>
+                    <td><input type="number" min="0" value="0" onchange="updateTotal(this, ${product.price})"></td>
+                    <td>$0.00</td>
+                `;
 
                 tableBody.appendChild(row);
             });
         });
 
-        function updateTotalPrice(event) {
-            const input = event.target;
-            const productId = parseInt(input.dataset.productId);
-            const product = products.find(p => p.id === productId);
-            const quantity = parseInt(input.value);
-            const totalPriceCell = input.parentElement.nextElementSibling;
-            totalPriceCell.textContent = `$${(product.price * quantity).toFixed(2)}`;
+        function updateTotal(input, price) {
+            const row = input.closest('tr');
+            const totalCell = row.querySelector('td:last-child');
+            const quantity = parseFloat(input.value);
+            const total = (quantity * price).toFixed(2);
+            totalCell.textContent = `$${total}`;
         }
 
         function checkout() {
-            const items = [];
-            const inputs = document.querySelectorAll('#product-table input[type="number"]');
-
-            inputs.forEach(input => {
-                const quantity = parseInt(input.value);
-                if (quantity > 0) {
-                    const productId = parseInt(input.dataset.productId);
-                    const product = products.find(p => p.id === productId);
-                    items.push({ productId: product.id, name: product.name, price: product.price, quantity });
-                }
+            let totalCost = 0;
+            document.querySelectorAll('#product-table tbody tr').forEach(row => {
+                const totalCell = row.querySelector('td:last-child');
+                const total = parseFloat(totalCell.textContent.replace('$', ''));
+                totalCost += total;
             });
-
-            if (items.length > 0) {
-                localStorage.setItem('cartItems', JSON.stringify(items));
-                window.location.href = 'checkout.html';
-            } else {
-                alert('Please select at least one item.');
-            }
+            alert(`Total cost: $${totalCost.toFixed(2)}`);
         }
     </script>
 </body>
