@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f4f4f4;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        .account-info,
+        .transfer-form,
+        .loan-form {
+            margin-bottom: 40px;
+        }
+
+        .transfer-form input,
+        .loan-form input,
+        .transfer-form button,
+        .loan-form button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .transfer-form button,
+        .loan-form button {
+            background: #007BFF;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .transfer-form button:hover,
+        .loan-form button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Welcome, <span id="username"></span></h2>
+        <div class="account-info">
+            <h3>Chequing Account Balance: $<span id="chequingBalance">0.00</span></h3>
+            <h3>Savings Account Balance: $<span id="savingsBalance">0.00</span></h3>
+        </div>
+
+        <!-- Transfer Form -->
+        <div class="transfer-form">
+            <h3>Transfer Money</h3>
+            <form id="transferForm" onsubmit="return transferMoney()">
+                <input type="number" id="transferAmount" placeholder="Amount" required>
+                <select id="transferFrom">
+                    <option value="chequing">From Chequing</option>
+                    <option value="savings">From Savings</option>
+                </select>
+                <input type="text" id="targetAccount" placeholder="Target Account Number" required>
+                <button type="submit">Transfer</button>
+            </form>
+            <p id="transferResult"></p>
+        </div>
+
+        <!-- Loan Form -->
+        <div class="loan-form">
+            <h3>Loan Application</h3>
+            <form id="loanForm" onsubmit="return applyForLoan()">
+                <input type="number" id="loanAmount" placeholder="Loan Amount" required>
+                <input type="number" id="loanYears" placeholder="Number of Years" required>
+                <button type="submit">Apply</button>
+            </form>
+            <p id="loanResult"></p>
+        </div>
+    </div>
+
+    <script>
+        let chequingBalance = 0;
+        let savingsBalance = 0;
+
+        function getQueryParams() {
+            const params = {};
+            const queryString = window.location.search.substring(1);
+            const regex = /([^&=]+)=([^&]*)/g;
+            let match;
+            while (match = regex.exec(queryString)) {
+                params[decodeURIComponent(match[1])] = decodeURIComponent(match[2]);
+            }
+            return params;
+        }
+
+        function updateBalances() {
+            document.getElementById('chequingBalance').textContent = chequingBalance.toFixed(2);
+            document.getElementById('savingsBalance').textContent = savingsBalance.toFixed(2);
+        }
+
+        function transferMoney() {
+            const amount = parseFloat(document.getElementById('transferAmount').value);
+            const from = document.getElementById('transferFrom').value;
+            const targetAccount = document.getElementById('targetAccount').value;
+
+            if (from === 'chequing') {
+                if (amount > chequingBalance) {
+                    document.getElementById('transferResult').textContent = 'Insufficient funds in chequing account';
+                    return false;
+                }
+                chequingBalance -= amount;
+            } else {
+                if (amount > savingsBalance) {
+                    document.getElementById('transferResult').textContent = 'Insufficient funds in savings account';
+                    return false;
+                }
+                savingsBalance -= amount;
+            }
+
+            document.getElementById('transferResult').textContent = `Transferred $${amount.toFixed(2)} to account ${targetAccount}`;
+            updateBalances();
+            return false;
+        }
+
+        function applyForLoan() {
+            const amount = parseFloat(document.getElementById('loanAmount').value);
+            const years = parseInt(document.getElementById('loanYears').value);
+            const interestRate = 0.05; // 5% annual interest rate
+            const totalToPay = amount * Math.pow(1 + interestRate, years);
+
+            document.getElementById('loanResult').textContent = `Loan Approved! Total to be paid back in ${years} years: $${totalToPay.toFixed(2)}`;
+            return false;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = getQueryParams();
+            const username = params.username;
+
+            if (username) {
+                const user = JSON.parse(localStorage.getItem(username));
+                if (user) {
+                    document.getElementById('username').textContent = user.username;
+                    chequingBalance = parseFloat(user.chequingBalance);
+                    savingsBalance = parseFloat(user.savingsBalance);
+                    updateBalances();
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
